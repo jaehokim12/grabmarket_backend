@@ -1,0 +1,7 @@
+{
+  "watch": ["src/**/*.ts", "src/**/*.js", "nodemon.json"],
+  "exec": "node ./src/server.js",
+  "delay": 2000,
+  "ext": "js, ts, json, jsx, mjs",
+  "ignore": ["./src/public/*"]
+}
