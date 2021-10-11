@@ -2,11 +2,24 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const models = require("./models");
+const multer = require("multer");
+// const upload = multer({ dest: "uploads/" }); // upload 라는 변수로 객체로 반환 받고 key:desti value:"uploads"
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "uploads/");
+    },
+    filename: function (req, file, cb) {
+      cb(null, file.originalname);
+    }
+  })
+});
+// form-data(이미지와같은파일)을 멀터함수를 사용하여 객체로반환하는데 "반환하고싶은경로"
 const port = 8080;
 
 app.use(express.json());
 app.use(cors());
-//
+
 app.get("/products", (req, res) => {
   models.Product.findAll({
     order: [["createdAt", "asc"]], // db table 순서 정함 , created(생성일짜순) , 내림차순 으로 정렬 해서 모두 가져옴
@@ -19,31 +32,16 @@ app.get("/products", (req, res) => {
       console.err(error);
     });
 }); // table에 있는 모든 data 가져옴
-// res.send({
-//   products: [
-//     {
-//       id: 1,
-//       name: '농구공',
-//       price: 100000,
-//       seller: '조던',
-//       imageUrl: 'images/products/basketball1.jpeg',
-//     },
-//     {
-//       id: 2,
-//       name: '축구공',
-//       price: 50000,
-//       seller: '메시',
-//       imageUrl: 'images/products/soccerball1.jpg',
-//     },
-//     {
-//       id: 3,
-//       name: '키보드',
-//       price: 10000,
-//       seller: '그랩',
-//       imageUrl: 'images/products/keyboard1.jpg',
-//     },
-//   ],
-// });
+//http 통신시 json 데이터를 body에 담아 전송하는데 파일이 큰경우
+//multer 파일업로드 할때 큰용량의 데이터 multipart/form-data 처리하기 위해서 사용
+// image 경로에서   image 키값을 가진 multipart/form-data 형태의 파일을 하나만 보내준다
+app.post("/image", upload.single("image"), (req, res) => {
+  const file = req.file;
+  console.log(file);
+  res.send({
+    imageUrl: file.path
+  });
+});
 
 app.post("/products", (req, res) => {
   const body = req.body;
@@ -108,3 +106,5 @@ app.listen(port, () => {
       process.exit();
     }); //db모델링 관련설정 , sequelize init 을 통해 생성된 코드들, 데이터베이스를 동기화하는 과정
 });
+//postman 에서 post 요청 해서 storage api의 upload 경로에 image url 이 있다
+//image url 을 전송컴포넌트를 눌렀을때 화면전환(imageURL 불러오는로직)
